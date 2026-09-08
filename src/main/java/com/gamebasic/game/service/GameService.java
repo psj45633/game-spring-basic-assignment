@@ -11,19 +11,21 @@ import com.gamebasic.runcard.entity.RunCard;
 import com.gamebasic.runcard.repository.RunCardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 @RequiredArgsConstructor
 public class GameService {
 
     private final GameRepository gameRepository;
     private final RunCardRepository runCardRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public GameDetailResponse createGame(CreateRequest request) {
         Game game = gameRepository.save(new Game(request.getPlayerName()));
         saveDeck(game, request.getDeck());
