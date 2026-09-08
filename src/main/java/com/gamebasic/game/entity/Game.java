@@ -1,16 +1,11 @@
 package com.gamebasic.game.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -38,6 +33,12 @@ public class Game {
     @Column(nullable = false, length = 16)
     private GameStatus status;
 
+    @Column(nullable = false,updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
     public Game(String playerName) {
         this.playerName = playerName;
         this.currentHp = 99;
@@ -64,5 +65,17 @@ public class Game {
 
     public boolean isFinished() {
         return status != GameStatus.PLAYING;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
