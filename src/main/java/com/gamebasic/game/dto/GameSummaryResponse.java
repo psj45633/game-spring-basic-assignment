@@ -16,7 +16,7 @@ public class GameSummaryResponse {
     private Integer currentHp;
     private GamePhase phase;
     private GameStatus status;
-    private Integer deckSize;
+    private Long deckSize;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -28,7 +28,7 @@ public class GameSummaryResponse {
             Integer currentHp,
             GamePhase phase,
             GameStatus status,
-            Integer deckSize,
+            Long deckSize,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {

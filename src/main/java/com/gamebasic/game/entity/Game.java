@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "games")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Game {
+public class Game extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,11 +33,7 @@ public class Game {
     @Column(nullable = false, length = 16)
     private GameStatus status;
 
-    @Column(nullable = false,updatable = false)
-    private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     public Game(String playerName) {
         this.playerName = playerName;
@@ -65,18 +61,6 @@ public class Game {
 
     public boolean isFinished() {
         return status != GameStatus.PLAYING;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void remane(String name){

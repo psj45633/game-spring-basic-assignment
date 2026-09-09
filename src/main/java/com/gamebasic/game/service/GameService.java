@@ -6,17 +6,18 @@ import com.gamebasic.game.dto.*;
 import com.gamebasic.game.entity.Game;
 import com.gamebasic.game.repository.GameRepository;
 import com.gamebasic.runcard.dto.CardResponse;
+import com.gamebasic.runcard.dto.DeckCount;
 import com.gamebasic.runcard.dto.RunCardRequest;
 import com.gamebasic.runcard.entity.RunCard;
 import com.gamebasic.runcard.repository.RunCardRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -66,8 +67,6 @@ public class GameService {
             throw new GameFinishedException(gameId);
         }
 
-
-
         game.updateProgress(
             request.getCurrentHp(),
             request.getCurrentFloor(),
@@ -98,6 +97,12 @@ public class GameService {
      public List<GameSummaryResponse> getGames() {
         List<Game> games = gameRepository.findAllByOrderByIdDesc();
         List<GameSummaryResponse> responses = new ArrayList<>();
+        List<DeckCount> deckCounts = runCardRepository.countByGames(games);
+
+        Map<Long,Long> deckCountMap = new HashMap<>();
+        for(DeckCount deckCount : deckCounts){
+            deckCountMap.put(deckCount.getGameId(), deckCount.getDeckSize());
+        }
 
         for(Game game : games){
             responses.add(new GameSummaryResponse(
@@ -107,7 +112,7 @@ public class GameService {
                     game.getCurrentHp(),
                     game.getPhase(),
                     game.getStatus(),
-                    runCardRepository.countByGame(game),
+                    deckCountMap.getOrDefault(game.getId(),0L),
                     game.getCreatedAt(),
                     game.getUpdatedAt()
             ));

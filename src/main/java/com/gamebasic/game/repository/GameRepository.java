@@ -1,5 +1,6 @@
 package com.gamebasic.game.repository;
 
+import com.gamebasic.runcard.dto.DeckCount;
 import com.gamebasic.game.entity.Game;
 import org.springframework.data.jpa.repository.JpaRepository;
 
