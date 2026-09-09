@@ -63,8 +63,4 @@ public class Game extends BaseEntity{
         return status != GameStatus.PLAYING;
     }
 
-    public void remane(String name){
-        playerName = name;
-
-    }
 }

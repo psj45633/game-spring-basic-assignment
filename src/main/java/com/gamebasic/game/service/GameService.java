@@ -153,7 +153,7 @@ public class GameService {
     @Transactional
     public void renameGame(Long gameId, RenameRequest request){
         Game game = findGame(gameId);
-        game.remane(request.getPlayerName());
+        game.rename(request.getPlayerName());
     }
 
 
