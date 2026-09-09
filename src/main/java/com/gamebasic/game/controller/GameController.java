@@ -1,6 +1,7 @@
 package com.gamebasic.game.controller;
 
 import com.gamebasic.game.dto.*;
+import com.gamebasic.game.entity.Game;
 import com.gamebasic.game.service.GameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
