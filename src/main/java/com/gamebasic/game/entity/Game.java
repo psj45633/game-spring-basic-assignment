@@ -78,4 +78,9 @@ public class Game {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void remane(String name){
+        playerName = name;
+
+    }
 }
