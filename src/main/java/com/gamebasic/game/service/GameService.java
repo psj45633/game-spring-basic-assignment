@@ -1,29 +1,32 @@
 package com.gamebasic.game.service;
 
-import com.gamebasic.game.dto.CreateRequest;
-import com.gamebasic.game.dto.GameDetailResponse;
-import com.gamebasic.game.dto.ProgressRequest;
+import com.gamebasic.common.exception.GameFinishedException;
+import com.gamebasic.common.exception.GameNotFoundException;
+import com.gamebasic.game.dto.*;
 import com.gamebasic.game.entity.Game;
 import com.gamebasic.game.repository.GameRepository;
 import com.gamebasic.runcard.dto.CardResponse;
+import com.gamebasic.runcard.dto.DeckCount;
 import com.gamebasic.runcard.dto.RunCardRequest;
 import com.gamebasic.runcard.entity.RunCard;
 import com.gamebasic.runcard.repository.RunCardRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Service
 @RequiredArgsConstructor
 public class GameService {
 
     private final GameRepository gameRepository;
     private final RunCardRepository runCardRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public GameDetailResponse createGame(CreateRequest request) {
         Game game = gameRepository.save(new Game(request.getPlayerName()));
         saveDeck(game, request.getDeck());
@@ -53,12 +56,17 @@ public class GameService {
 
     private Game findGame(Long gameId) {
         return gameRepository.findById(gameId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new GameNotFoundException(gameId));
     }
 
     @Transactional
     public GameDetailResponse updateProgress(Long gameId, ProgressRequest request) {
         Game game = findGame(gameId);
+
+        if(game.isFinished()){
+            throw new GameFinishedException(gameId);
+        }
+
         game.updateProgress(
             request.getCurrentHp(),
             request.getCurrentFloor(),
@@ -84,16 +92,81 @@ public class GameService {
         );
     }
 
-    // TODO (Lv 7): 게임 목록 조회. 주석을 풀고 구현하세요.
-    // @Transactional(readOnly = true)
-    // public List<GameSummaryResponse> getGames() {
-    // }
+//     TODO (Lv 7): 게임 목록 조회. 주석을 풀고 구현하세요.
+     @Transactional(readOnly = true)
+     public List<GameSummaryResponse> getGames() {
+        List<Game> games = gameRepository.findAllByOrderByIdDesc();
+        List<GameSummaryResponse> responses = new ArrayList<>();
+        List<DeckCount> deckCounts = runCardRepository.countByGames(games);
 
-    // TODO (Lv 7): 게임 상세 조회. 주석을 풀고 구현하세요.
-    // @Transactional(readOnly = true)
-    // public GameDetailResponse getGame(Long gameId) {
-    // }
+        Map<Long,Long> deckCountMap = new HashMap<>();
+        for(DeckCount deckCount : deckCounts){
+            deckCountMap.put(deckCount.getGameId(), deckCount.getDeckSize());
+        }
+
+        for(Game game : games){
+            responses.add(new GameSummaryResponse(
+                    game.getId(),
+                    game.getPlayerName(),
+                    game.getCurrentFloor(),
+                    game.getCurrentHp(),
+                    game.getPhase(),
+                    game.getStatus(),
+                    deckCountMap.getOrDefault(game.getId(),0L),
+                    game.getCreatedAt(),
+                    game.getUpdatedAt()
+            ));
+        }
+
+
+        return responses;
+     }
+
+//     TODO (Lv 7): 게임 상세 조회. 주석을 풀고 구현하세요.
+     @Transactional(readOnly = true)
+     public GameDetailResponse getGame(Long gameId) {
+        Game game = findGame((gameId));
+        List<RunCard> cards = runCardRepository.findAllByGameOrderByIdAsc(game);
+
+        List<CardResponse> deck = new ArrayList<>();
+
+        for(RunCard card : cards){
+            deck.add(new CardResponse(
+                    card.getId(),
+                    card.getCardType(),
+                    card.getAcquiredFloor()
+            ));
+        }
+
+        return new GameDetailResponse(
+                game.getId(),
+                game.getPlayerName(),
+                game.getCurrentHp(),
+                game.getCurrentFloor(),
+                game.getPhase(),
+                game.getStatus(),
+                deck
+        );
+     }
 
     // TODO (Lv 8): 플레이어 이름 변경 — 변경 감지로 수정
+    @Transactional
+    public void renameGame(Long gameId, RenameRequest request){
+        Game game = findGame(gameId);
+        game.rename(request.getPlayerName());
+    }
+
+
+
+
+
     // TODO (Lv 8): 게임 삭제
+    @Transactional
+    public void deleteGame(Long gameId){
+        Game game = findGame(gameId);
+        runCardRepository.deleteAllByGame(game);
+        gameRepository.delete(game);
+
+
+    }
 }

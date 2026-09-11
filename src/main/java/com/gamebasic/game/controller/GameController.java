@@ -1,16 +1,13 @@
 package com.gamebasic.game.controller;
 
-import com.gamebasic.game.dto.CreateRequest;
-import com.gamebasic.game.dto.GameDetailResponse;
+import com.gamebasic.game.dto.*;
+import com.gamebasic.game.entity.Game;
 import com.gamebasic.game.service.GameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,12 +16,18 @@ import java.util.List;
 public class GameController {
     private final GameService gameService;
 
-    @GetMapping("/game")
-    public ResponseEntity<List<Object>> getGames() {
+    @GetMapping("/games")
+    public ResponseEntity<List<GameSummaryResponse>> getGames() {
         // List<Object>는 임시 구현이며, Lv 7에서 제대로 고칩니다.
         // List.of()는 빈 목록을 돌려주는 임시 구현이며, Lv 7에서 제대로 고칩니다.
-        return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(gameService.getGames());
     }
+
+    @GetMapping("/games/{gameId}")
+    public ResponseEntity<GameDetailResponse> getGame(@PathVariable Long gameId) {
+        return ResponseEntity.ok(gameService.getGame(gameId));
+    }
+
 
     @PostMapping("/games")
     public ResponseEntity<GameDetailResponse> createGame(@Valid @RequestBody CreateRequest request) {
@@ -33,11 +36,26 @@ public class GameController {
     }
 
     // TODO (Lv 6): 진행과 전체 덱 저장. 주석을 풀고 구현하세요.
-    // @PutMapping("/games/{gameId}/progress")
-    // public ResponseEntity<?> updateProgress(
-    //     @PathVariable Long gameId,
-    //     @Valid @RequestBody ProgressRequest request
-    // ) {
-    //     return ResponseEntity.ok(gameService.updateProgress(gameId, request));
-    // }
+     @PutMapping("/games/{gameId}/progress")
+     public ResponseEntity<GameDetailResponse> updateProgress(
+         @PathVariable Long gameId,
+         @Valid @RequestBody ProgressRequest request
+     ) {
+         return ResponseEntity.ok(gameService.updateProgress(gameId, request));
+     }
+
+     @PatchMapping("/games/{gameId}")
+    public ResponseEntity<Void> renameGame(
+             @PathVariable Long gameId,
+             @Valid @RequestBody RenameRequest request
+             ){
+        gameService.renameGame(gameId,request);
+        return ResponseEntity.noContent().build();
+     }
+
+    @DeleteMapping("/games/{gameId}")
+    public ResponseEntity<Void> deleteGame(@PathVariable Long gameId) {
+        gameService.deleteGame(gameId);
+        return ResponseEntity.noContent().build();
+    }
 }
